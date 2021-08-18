@@ -1,0 +1,555 @@
+import os
+import numpy as np
+from os.path import join
+from pandas_plink import read_plink
+from pandas_plink import get_data_folder
+import pandas as pd
+
+
+# In[2]:
+
+
+
+
+os.chdir("J:/Fichiers/Dossier_COVID19/Analyses_d_association")
+
+(bim_UKB, fam_UKB, bed_UKB) = read_plink("ADV_CLIN_NAD_maf0.05_info0.8_QC_ALLCHR_hct_0.9_keep_SNPs_TMPRSS2_outil_ADVANCE", verbose=False)
+print(bim_UKB)
+
+
+# In[3]:
+
+
+bim_UKB_df = pd.DataFrame(bim_UKB)
+bim_UKB_df
+
+
+# In[4]:
+
+
+print(len(bim_UKB_df["snp"]))
+print(len(set(bim_UKB_df["snp"])))
+
+
+# In[5]:
+
+
+# Un check
+
+tab_225 = pd.read_excel("Liste_SNPs_TMPRSS2_associés_outil_ADVANCE.xlsx", header=None)
+tab_225.columns = ["snp"]
+tab_225
+
+
+# In[6]:
+
+
+print(set(list(bim_UKB_df["snp"])).difference(set(list(tab_225["snp"]))))
+
+
+# In[7]:
+
+
+print(fam_UKB)
+
+
+# In[8]:
+
+
+print(bed_UKB.compute())
+
+
+# In[9]:
+
+
+bed_UKB_df = pd.DataFrame(bed_UKB.compute())
+bed_UKB_df
+
+
+# In[10]:
+
+
+fam_UKB_df = pd.DataFrame(fam_UKB)
+fam_UKB_df
+
+
+# In[11]:
+
+
+bed_UKB_df.columns = list(fam_UKB_df["iid"])
+bed_UKB_df.insert(len(list(bed_UKB_df.columns)), "snp", list(bim_UKB_df["snp"]))
+bed_UKB_df
+
+
+# In[12]:
+
+
+bed_UKB_df_t = bed_UKB_df.T
+bed_UKB_df_t.columns = list(bed_UKB_df["snp"])
+bed_UKB_df_t_final = bed_UKB_df_t[:-1]
+bed_UKB_df_t_final.insert(len(list(bed_UKB_df_t_final.columns)), "id", list(bed_UKB_df.columns)[:-1])
+ind_bed_UKB_df_t_final = list(range(0, len(bed_UKB_df_t_final)))
+bed_UKB_df_t_final.index = ind_bed_UKB_df_t_final
+bed_UKB_df_t_final
+
+
+# In[13]:
+
+
+# Je vais faire la même chose pour les données de chip 6
+
+(bim_chip6, fam_chip6, bed_chip6) = read_plink("ADVANCE_6.0_imputed_allchr_hct_0.9_keep_SNPs_TMPRSS2_outil_ADVANCE", verbose=False)
+bim_chip6_df = pd.DataFrame(bim_chip6)
+fam_chip6_df = pd.DataFrame(fam_chip6)
+bed_chip6_df = pd.DataFrame(bed_chip6.compute())
+
+
+# In[14]:
+
+
+bim_chip6_df
+
+
+# In[15]:
+
+
+fam_chip6_df
+
+
+# In[16]:
+
+
+bed_chip6_df
+
+
+# In[17]:
+
+
+# Un check
+bim_UKB_chip6 = bim_UKB_df.merge(bim_chip6_df, left_on="snp", right_on="snp", how="inner")
+bim_UKB_chip6
+
+
+# In[18]:
+
+
+print(list(bim_UKB_chip6["a1_x"]) == list(bim_UKB_chip6["a1_y"]))
+print(list(bim_UKB_chip6["a0_x"]) == list(bim_UKB_chip6["a0_y"]))
+
+
+# In[19]:
+
+
+list_inv = []
+for i, j, k in zip(list(bim_UKB_chip6["a1_x"]), list(bim_UKB_chip6["a1_y"]), list(bim_UKB_chip6["snp"])):
+    if i != j:
+        list_inv.append(k)
+        
+        
+print(list_inv)
+
+
+# In[20]:
+
+
+tab_rev = bim_UKB_chip6[bim_UKB_chip6["snp"].isin(list_inv)]
+tab_rev
+
+
+# In[21]:
+
+
+bed_chip6_df.columns = list(fam_chip6_df["iid"])
+bed_chip6_df.insert(len(list(bed_chip6_df.columns)), "snp", list(bim_chip6_df["snp"]))
+bed_chip6_df
+
+
+# In[22]:
+
+
+bed_chip6_df_t = bed_chip6_df.T
+bed_chip6_df_t.columns = list(bed_chip6_df["snp"])
+bed_chip6_df_t_final = bed_chip6_df_t[:-1]
+bed_chip6_df_t_final.insert(len(list(bed_chip6_df_t_final.columns)), "id", list(bed_chip6_df.columns)[:-1])
+ind_bed_chip6_df_t_final = list(range(0, len(bed_chip6_df_t_final)))
+bed_chip6_df_t_final.index = ind_bed_chip6_df_t_final
+bed_chip6_df_t_final
+
+
+# In[23]:
+
+
+# Je vais faire la même chose avec les données du chip5
+
+(bim_chip5, fam_chip5, bed_chip5) = read_plink("ADVANCE_5.0_imputed_allchr_hct_0.9_keep_SNPs_TMPRSS2_outil_ADVANCE", verbose=False)
+bim_chip5_df = pd.DataFrame(bim_chip5)
+fam_chip5_df = pd.DataFrame(fam_chip5)
+bed_chip5_df = pd.DataFrame(bed_chip5.compute())
+
+
+# In[24]:
+
+
+bim_chip5_df
+
+
+# In[25]:
+
+
+fam_chip5_df
+
+
+# In[26]:
+
+
+bed_chip5_df
+
+
+# In[27]:
+
+
+# Un check
+
+UKB_chip6_bim = bim_UKB_df.merge(bim_chip6_df, left_on="snp", right_on="snp", how="inner")
+UKB_chip6_chip5_bim = UKB_chip6_bim.merge(bim_chip5_df, left_on="snp", right_on="snp", how="inner")
+UKB_chip6_chip5_bim
+
+
+# In[28]:
+
+
+print(list(UKB_chip6_chip5_bim["a1_x"]) == list(UKB_chip6_chip5_bim["a1_y"]))
+print(list(UKB_chip6_chip5_bim["a1_x"]) == list(UKB_chip6_chip5_bim["a1"]))
+print(list(UKB_chip6_chip5_bim["a1_y"]) == list(UKB_chip6_chip5_bim["a1"]))
+
+
+# In[29]:
+
+
+list_inv1 = []
+for i, j, k in zip(list(UKB_chip6_chip5_bim["a1_x"]), list(UKB_chip6_chip5_bim["a1_y"]), list(UKB_chip6_chip5_bim["snp"])):
+    if i != j:
+        list_inv1.append(k)
+        
+        
+print(list_inv1)
+
+
+# In[30]:
+
+
+list_inv2 = []
+for i, j, k in zip(list(UKB_chip6_chip5_bim["a1_x"]), list(UKB_chip6_chip5_bim["a1"]), list(UKB_chip6_chip5_bim["snp"])):
+    if i != j:
+        list_inv2.append(k)
+        
+        
+print(list_inv2)
+
+
+# In[31]:
+
+
+rev_UKB_6 = UKB_chip6_chip5_bim[UKB_chip6_chip5_bim["snp"].isin(list_inv1)]
+rev_UKB_6
+
+
+# In[32]:
+
+
+rev_UKB_5 = UKB_chip6_chip5_bim[UKB_chip6_chip5_bim["snp"].isin(list_inv2)]
+rev_UKB_5
+
+
+# In[33]:
+
+
+bed_chip5_df.columns = list(fam_chip5_df["iid"])
+bed_chip5_df.insert(len(list(bed_chip5_df.columns)), "snp", list(bim_chip5_df["snp"]))
+bed_chip5_df
+
+
+# In[34]:
+
+
+bed_chip5_df_t = bed_chip5_df.T
+bed_chip5_df_t.columns = list(bed_chip5_df["snp"])
+bed_chip5_df_t_final = bed_chip5_df_t[:-1]
+bed_chip5_df_t_final.insert(len(list(bed_chip5_df_t_final.columns)), "id", list(bed_chip5_df.columns)[:-1])
+ind_bed_chip5_df_t_final = list(range(0, len(bed_chip5_df_t_final)))
+bed_chip5_df_t_final.index = ind_bed_chip5_df_t_final
+bed_chip5_df_t_final
+
+
+# In[35]:
+
+
+# Les genotypes des tableaux bed_chip6_df_t_final et bed_chip5_df_t_final qui ont été rapportés avec un ordre d'allèles
+# a0 et a1 différents de ceux de bed_UKB_df_t_final vont maintenant être orientés dans le même sens que celui de
+# bed_UKB_df_t_final
+
+col_bed_chip6 = list(bed_chip6_df_t_final.columns)[:-1]
+col_bed_chip5 = list(bed_chip5_df_t_final.columns)[:-1]
+
+print(col_bed_chip6)
+print(col_bed_chip5)
+
+
+# In[36]:
+
+
+for q in col_bed_chip6:
+    list_switch = []
+    if q in list_inv1:
+        for t in list(bed_chip6_df_t_final[q]):
+            if t == 0:
+                list_switch.append(2)
+            elif t == 1:
+                list_switch.append(1)
+            elif t == 2:
+                list_switch.append(0)
+            else:
+                list_switch.append(np.nan)
+                
+        print(len(list_switch))
+        bed_chip6_df_t_final.insert(len(list(bed_chip6_df_t_final.columns))-1, "{}_inv".format(q), list_switch)
+            
+            
+
+bed_chip6_df_t_final
+
+
+# In[37]:
+
+
+for q in col_bed_chip5:
+    list_switch = []
+    if q in list_inv2:
+        for t in list(bed_chip5_df_t_final[q]):
+            if t == 0:
+                list_switch.append(2)
+            elif t == 1:
+                list_switch.append(1)
+            elif t == 2:
+                list_switch.append(0)
+            else:
+                list_switch.append(np.nan)
+                
+        print(len(list_switch))
+        bed_chip5_df_t_final.insert(len(list(bed_chip5_df_t_final.columns))-1, "{}_inv".format(q), list_switch)
+            
+            
+
+bed_chip5_df_t_final
+
+
+# In[38]:
+
+
+verifi1 = pd.DataFrame(bed_chip5_df_t_final, columns = list_inv2)
+verifi1
+
+
+# In[39]:
+
+
+verifi2 = pd.DataFrame(bed_chip5_df_t_final, columns = list(bed_chip5_df_t_final)[-14:])
+verifi2
+
+
+# In[40]:
+
+
+col_6 = list(bed_chip6_df_t_final)[:-1]
+no_reverse_6 = []
+for i in col_6:
+    if i in list_inv1:
+        pass
+    else:
+        no_reverse_6.append(i)
+        
+        
+print(no_reverse_6)
+bed_6_switch_rev = pd.DataFrame(bed_chip6_df_t_final, columns = no_reverse_6 + ["id"])
+bed_6_switch_rev
+
+
+# In[41]:
+
+
+col_6_switch = list(bed_6_switch_rev.columns)[:-1]
+no_reverse_6_final = []
+for j in col_6_switch:
+    if j.endswith("_inv"):
+        no_reverse_6_final.append(j[:-len("_inv")])
+    else:
+        no_reverse_6_final.append(j)
+
+
+bed_6_switch_rev.columns = no_reverse_6_final + ["id"]
+bed_6_switch_rev
+
+
+# In[42]:
+
+
+col_5 = list(bed_chip5_df_t_final)[:-1]
+no_reverse_5 = []
+for i in col_5:
+    if i in list_inv2:
+        pass
+    else:
+        no_reverse_5.append(i)
+        
+        
+print(no_reverse_5)
+bed_5_switch_rev = pd.DataFrame(bed_chip5_df_t_final, columns = no_reverse_5 + ["id"])
+bed_5_switch_rev
+
+
+# In[43]:
+
+
+col_5_switch = list(bed_5_switch_rev.columns)[:-1]
+no_reverse_5_final = []
+for j in col_5_switch:
+    if j.endswith("_inv"):
+        no_reverse_5_final.append(j[:-len("_inv")])
+    else:
+        no_reverse_5_final.append(j)
+
+
+bed_5_switch_rev.columns = no_reverse_5_final + ["id"]
+bed_5_switch_rev
+
+
+# In[44]:
+
+
+print(len(set(list(bed_6_switch_rev.columns)).intersection(set(list(bed_5_switch_rev.columns)))))
+
+
+# In[45]:
+
+
+print(set(list(bed_6_switch_rev.columns)) == set(list(bed_5_switch_rev.columns)))
+
+
+# In[46]:
+
+
+SNPs_comm_3_chips = list(UKB_chip6_chip5_bim["snp"])
+print(len(SNPs_comm_3_chips))
+
+# Un check
+
+print(set(list(bed_UKB_df_t_final.columns)[:-1]).difference(set(SNPs_comm_3_chips)))
+print(set(SNPs_comm_3_chips).difference(set(list(bed_UKB_df_t_final.columns)[:-1])))
+print(set(list(bed_6_switch_rev.columns)[:-1]).difference(set(SNPs_comm_3_chips)))
+print(set(list(bed_5_switch_rev.columns)[:-1]).difference(set(SNPs_comm_3_chips)))
+print(set(list(bed_UKB_df_t_final.columns)[:-1]).difference(set(list(bed_6_switch_rev.columns)[:-1])))
+print(set(list(bed_UKB_df_t_final.columns)[:-1]).difference(set(list(bed_5_switch_rev.columns)[:-1])))
+
+
+# In[47]:
+
+
+UKB_diap = pd.DataFrame(bed_UKB_df_t_final, columns = ["id"] + SNPs_comm_3_chips)
+chip6_diap = pd.DataFrame(bed_6_switch_rev, columns = ["id"] + SNPs_comm_3_chips)
+chip5_diap = pd.DataFrame(bed_5_switch_rev, columns = ["id"] + SNPs_comm_3_chips)
+
+
+# In[48]:
+
+
+UKB_diap
+
+
+# In[49]:
+
+
+chip6_diap
+
+
+# In[50]:
+
+
+chip5_diap
+
+
+# In[51]:
+
+
+concaten = [UKB_diap, chip6_diap, chip5_diap]
+all_patients = pd.concat(concaten)
+ind_all_patients = list(range(0, len(all_patients)))
+all_patients.index = ind_all_patients
+all_patients
+
+
+# In[52]:
+
+
+# Par précaution et afin d'éviter des deviations de l'equilibre de Hardy_Weinberg, je vais me limiter aux SNPs 
+# qui ont servi au GWAS de ADVANCE
+
+os.chdir("J:/Fichiers/GWAS_data_ACD_CVd_nonCVd")
+GWAS_ADV = pd.read_csv("ln_alt_baseline_5_6_UKB_meta.assoc", header=0, sep=" ")
+GWAS_ADV
+
+
+# In[53]:
+
+
+GWAS_avail = GWAS_ADV[GWAS_ADV["SNP"].isin(list(all_patients.columns)[1:])]
+GWAS_avail
+
+
+# In[54]:
+
+
+SNPs_avail_gwas = list(GWAS_avail["SNP"])
+genot_4098_final = pd.DataFrame(all_patients, columns = ["id"] + SNPs_avail_gwas)
+genot_4098_final
+
+
+# In[55]:
+
+
+# Je vais maintenant extraire le tableau phenotypique
+
+os.chdir("J:/Fichiers/Dossier_travail_article_Dr_Hamet/Analyses_phenotypiques_en_fonction_ethnicity")
+tab_phen = pd.read_csv("tab_phenotypes_4098_patients_pour_ajustement_R_lsmeans_groupes_ethniques_3PCs_Camil_added_age_diag_diab_year.csv", header=0, sep=",")
+tab_phen
+
+
+# In[56]:
+
+
+for p in list(tab_phen.columns):
+    print(p)
+
+
+# In[57]:
+
+
+# Les ids des patients dans la dataframe genot_4098_final sont de type string alors qu'ils sont de type integer dans la
+# la dataframe tab_phen. Je vais les rendre de type string
+
+ids_str = []
+
+for i in list(tab_phen["id"]):
+    ids_str.append(str(i))
+    
+    
+tab_phen.insert(len(list(tab_phen.columns)), "ID", ids_str)
+tab_phen
+
+
+# In[58]:
+
+
+col_tab_phen = list(tab_phen.columns)[:-1]
+tab_phen1 = pd.DataFrame(tab_phen, columns = ["ID"] + list(tab_phen.columns)[1:-1])
+tab_phen1.columns = col_tab_phen
+tab_phen1
